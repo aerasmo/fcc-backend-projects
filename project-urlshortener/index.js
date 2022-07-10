@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-let bodyParser = require('body-parser')
+const bodyParser = require('body-parser')
 const app = express();
 const commands = require('./commands')
 
@@ -54,8 +54,13 @@ app.post('/api/shorturl', async function(req, res) {
 
 app.get('/api/shorturl/:shorturl', async function(req, res) {
   let { shorturl } = req.params;
-  let link = await commands.findLinkByShortURL(shorturl);
-  res.redirect(link.url);
+  let link
+  try {
+    link = await commands.findLinkByShortURL(shorturl);
+    res.redirect(link.url);
+  } catch(e) {
+    res.json({"error": e})
+  }
 });
 
 app.listen(port, function() {

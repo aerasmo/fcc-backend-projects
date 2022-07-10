@@ -15,13 +15,14 @@ async function findLinkByShortURL(shorturl) {
     var link
     try {
         link = await Link.findOne({"shorturl": shorturl})
-        console.log("Found object:")
-        console.log(link)
     } catch (e) {
         console.log(e.message)
         return 
     }
+    if (link === null) {
+        throw("invalid shorturl");
+    }
     return link
 }
 
-  module.exports = {saveURLToDB, findLinkByShortURL }
+module.exports = {saveURLToDB, findLinkByShortURL }
