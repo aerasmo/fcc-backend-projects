@@ -4,7 +4,7 @@ const cors = require('cors')
 const mongoose = require("mongoose")
 const bodyParser = require("body-parser")
 const User = require("./models/Users")
-const Exercise = require('./models/exercise')
+const Exercise = require('./models/Exercise')
 const formatDate = require('./utils')
 
 require('dotenv').config()
@@ -34,6 +34,7 @@ app.get('/', (req, res) => {
 // User routes
 app.post('/api/users', async (req, res) => {
   let { username } = req.body;
+  console.log(req.body)
   try {
     let user = await User.create( { username: username })
     user =  { 
@@ -60,7 +61,7 @@ app.get('/api/users', async(req, res) => {
 
 // Exercise routes
 app.post('/api/users/:_id/exercises', async(req, res) => {
-  let { _id } = req.params;
+  let _id = req.body[":_id"] || req.params._id;
   let { description, duration, date} = req.body;
   let json_response;
   if (!date) {
@@ -70,20 +71,16 @@ app.post('/api/users/:_id/exercises', async(req, res) => {
     let user = await User.findById(_id); 
     let exercise = await Exercise.create({ description, duration, date, user: _id});
 
-    let formattedDate = formatDate(new Date(date))
+    let formattedDate = new Date(date).toDateString();
     user.log.push(exercise._id);
     user.save()
 
-    console.log(user);
-    console.log(exercise);
-    console.log(formattedDate)
-
     json_response = {
       "username": user.username,
+      "_id": _id,
       "description": exercise.description,
       "duration": exercise.duration,
-      "date": formattedDate,
-      "_id": user._id
+      "date": formattedDate
     } 
   } catch(e) {
     console.log(e.message)
@@ -98,16 +95,39 @@ app.post('/api/users/:_id/exercises', async(req, res) => {
 // Logs routes
 app.get('/api/users/:_id/logs', async(req, res) => {
   let { _id } = req.params;
+  let { from , to, limit } = req.query;
   let json_response;
   try {
-    let user = await User.findById(_id)
-      .populate("log", {_id: 0, description: 1, duration:1, date: 1})
-      .select("username _id log"); 
+    let user = await User.findById(_id);
+    let exercise, formattedDate;
+    let query = {"user": _id};
+    let dateQuery = {};
+    if (from) {
+      dateQuery["$gte"] = new Date(from);
+    } 
+    if (to) {
+      dateQuery["$lte"] = new Date(to);
+    }
+    if (from || to) {
+      query["date"] = dateQuery;
+    }
+
+    if (limit) {
+      exercise = await Exercise.find(query, {_id: 0, description: 1, duration:1, date: 1}).limit(limit);
+    } else {
+      exercise = await Exercise.find(query, {_id: 0, description: 1, duration:1, date: 1});
+    }
+    exercise = exercise.map( obj => {
+      formattedDate = obj.date.toDateString();
+      let {description, duration} = obj
+      return {description, duration, date: formattedDate}
+    })
+
     json_response = {
       username: user.username,
-      count: user.count,
+      count: exercise.length,
       _id: user.id,
-      log: user.log
+      log: exercise
     };
   } catch(e) {
     console.log(e.message);

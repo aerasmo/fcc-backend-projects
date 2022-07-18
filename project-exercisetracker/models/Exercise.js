@@ -13,5 +13,4 @@ const exerciseSchema = new mongoose.Schema( {
     }
 })
 
-
 module.exports = mongoose.model('exercisetracker.exercise', exerciseSchema)

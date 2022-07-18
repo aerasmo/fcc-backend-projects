@@ -10,8 +10,8 @@ const userSchema = new mongoose.Schema({
     }]
 })
 
-userSchema.virtual("count").get(function() {
-	return this.log.length;
-})
+// userSchema.virtual("exerciseCount").get(function() {
+// 	return this.log.length;
+// })
 
 module.exports = mongoose.model('exercisetracker.user', userSchema)
