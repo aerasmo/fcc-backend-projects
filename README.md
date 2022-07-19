@@ -1,5 +1,5 @@
 # fcc-backend-projects
-5 Microservices API projects within freecodecamp's Backend Development and APIs certification
+5 Microservices API projects included in freecodecamp's Backend Development and APIs certification
 
 ## Timestamp Microservice
 https://replit.com/@aerasmo/project-timestamp
